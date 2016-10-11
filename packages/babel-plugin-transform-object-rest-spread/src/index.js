@@ -8,6 +8,15 @@ export default function ({ types: t }) {
     return false;
   }
 
+  function checkUseBuiltIns(file) {
+    let useBuiltIns = file.opts.useBuiltIns || false;
+    if (typeof useBuiltIns !== "boolean") {
+      throw new Error("transform-object-rest-spread currently only accepts a boolean option for useBuiltIns (defaults to false)");
+    }
+
+    return useBuiltIns;
+  }
+
   return {
     inherits: require("babel-plugin-syntax-object-rest-spread"),
 
@@ -15,11 +24,7 @@ export default function ({ types: t }) {
       ObjectExpression(path, file) {
         if (!hasSpread(path.node)) return;
 
-        let useBuiltIns = file.opts.useBuiltIns || false;
-        if (typeof useBuiltIns !== "boolean") {
-          throw new Error("transform-object-rest-spread currently only accepts a boolean option for useBuiltIns (defaults to false)");
-        }
-
+        let useBuiltIns = checkUseBuiltIns(file);
         let args = [];
         let props = [];
 
@@ -49,6 +54,11 @@ export default function ({ types: t }) {
           file.addHelper("extends");
 
         path.replaceWith(t.callExpression(helper, args));
+      },
+
+      ObjectPattern(path, file) {
+        if (!hasSpread(path.node)) return;
+
       }
     }
   };
